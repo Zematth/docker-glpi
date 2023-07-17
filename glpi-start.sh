@@ -12,7 +12,7 @@ fi
 
 SRC_GLPI=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/tags/${VERSION_GLPI} | jq .assets[0].browser_download_url | tr -d \")
 TAR_GLPI=$(basename ${SRC_GLPI})
-FOLDER_GLPI=glpi/
+#FOLDER_GLPI=glpi/
 FOLDER_WEB=/var/www/html/
 
 #check if TLS_REQCERT is present
@@ -23,28 +23,28 @@ then
 fi
 
 #Téléchargement et extraction des sources de GLPI
-if [ "$(ls ${FOLDER_WEB}${FOLDER_GLPI})" ];
+if [ "$(ls ${FOLDER_WEB})" ];
 then
 	echo "GLPI is already installed"
 else
 	wget -P ${FOLDER_WEB} ${SRC_GLPI}
 	tar -xzf ${FOLDER_WEB}${TAR_GLPI} -C ${FOLDER_WEB}
 	rm -Rf ${FOLDER_WEB}${TAR_GLPI}
-	chown -R www-data:www-data ${FOLDER_WEB}${FOLDER_GLPI}
+	chown -R www-data:www-data ${FOLDER_WEB}
 fi
 
 #Adapt the Apache server according to the version of GLPI installed
 ## Extract local version installed
-LOCAL_GLPI_VERSION=$(ls ${FOLDER_WEB}/${FOLDER_GLPI}/version)
+#LOCAL_GLPI_VERSION=$(ls ${FOLDER_WEB}/${FOLDER_GLPI}/version)
 ## Extract major version number
-LOCAL_GLPI_MAJOR_VERSION=$(echo $LOCAL_GLPI_VERSION | cut -d. -f1)
+#LOCAL_GLPI_MAJOR_VERSION=$(echo $LOCAL_GLPI_VERSION | cut -d. -f1)
 ## Remove dots from version string
-LOCAL_GLPI_VERSION_NUM=${LOCAL_GLPI_VERSION//./}
+#LOCAL_GLPI_VERSION_NUM=${LOCAL_GLPI_VERSION//./}
 
 ## Target value is GLPI 1.0.7
-TARGET_GLPI_VERSION="10.0.7"
-TARGET_GLPI_VERSION_NUM=${TARGET_GLPI_VERSION//./}
-TARGET_GLPI_MAJOR_VERSION=$(echo $TARGET_GLPI_VERSION | cut -d. -f1)
+#TARGET_GLPI_VERSION="10.0.7"
+#TARGET_GLPI_VERSION_NUM=${TARGET_GLPI_VERSION//./}
+#TARGET_GLPI_MAJOR_VERSION=$(echo $TARGET_GLPI_VERSION | cut -d. -f1)
 
 # Compare the numeric value of the version number to the target number
 if [[ $LOCAL_GLPI_VERSION_NUM -lt $TARGET_GLPI_VERSION_NUM || $LOCAL_GLPI_MAJOR_VERSION -lt $TARGET_GLPI_MAJOR_VERSION ]]; then
@@ -55,12 +55,12 @@ else
 fi
 
 #Add scheduled task by cron and enable
-echo "*/2 * * * * www-data /usr/bin/php /var/www/html/glpi/front/cron.php &>/dev/null" >> /etc/cron.d/glpi
+echo "*/2 * * * * www-data /usr/bin/php /var/www/html/front/cron.php &>/dev/null" >> /etc/cron.d/glpi
 #Start cron service
 service cron start
 
 #Activation du module rewrite d'apache
-a2enmod rewrite && service apache2 restart && service apache2 stop
+#a2enmod rewrite && service apache2 restart && service apache2 stop
 
 #Lancement du service apache au premier plan
-/usr/sbin/apache2ctl -D FOREGROUND
+#/usr/sbin/apache2ctl -D FOREGROUND
